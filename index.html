@@ -1,0 +1,185 @@
+<html>
+ <head>
+   <title>Graphs</title>
+
+   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+
+   <script src="js/lib/jquery.cookie.js" type="text/javascript"></script>
+   <script src="js/jquery.treeview.js" type="text/javascript"></script>
+   <link rel="stylesheet" href="js/jquery.treeview.css" />
+
+   <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
+   <link type="text/css" rel="stylesheet" href="css/overcast/jquery-ui-1.8.24.custom.css" />
+
+   <style>
+    body { font-size: 12px; 
+            margin: 0;
+            padding: 0 0 20px;
+            background: #ffffff;
+            min-height: 100%;
+            font-family: "Arial", "Helvetica", "Verdana", "sans-serif";
+        }
+    #main { margin: 10px; }
+    #hosts { float: left; width: 250px; }
+    #graph { float: left; width: 960px; margin-left: 20px; background-color: #ccc;}
+    .treeview ul { background-color: transparent; }
+    .outter { padding: 10px; margin: 10px;}
+    .placeholder { width: 880px; height: 300px; border: 0px; }
+   </style>
+ </head>
+ <body>
+  <div id="main">
+     <div id="hosts"></div>
+     <div id="graph" class="ui-widget ui-widget-content ui-corner-all"></div>
+  </div>
+ </body>
+
+ <script type="text/javascript">
+
+ $(document).ready(function() {
+    $.ajax({
+        url: 'resource.php?action=list-hosts', 
+        dataType: 'json',
+        success: function(data) {
+            var list = '';
+            var count = 0;
+            $.each(data.group, function(gindex, gval) {
+                list += '<h3><a>'+ gindex  +'</a></h3>\n';
+                list += ' <div>';
+                list += '  <ul>';
+                $.each(gval, function(index, val) {
+                    list += '<li><a name="'+ val.value +'">'+ val.name +'</a><ul id="'+ count +'"></ul></li>';
+                    count = count + 1;
+                });
+                list += '  </ul>';
+                list += ' </div>';
+            });
+            $('#hosts').html(list);
+            
+            /** Get the services on each Host */
+            count = 0;
+            $.each(data.group, function(gindex, gval) {
+                $.each(gval, function(index, val) {
+                    getServices(val.value, $('#'+ count));
+                    count = count + 1;
+                });
+            });
+
+            /** build the tree */
+            $('#hosts ul').treeview({collapsed: true})
+
+            $('#hosts').accordion({
+                autoHeight: false,
+                /*change: function(event, ui) {
+                    name = ui.newHeader.children('a').attr('name');
+                    id   = ui.newContent;
+                    getServices(name, id);
+                }*/
+            });
+        }
+    });
+ });
+
+ function getServices(host, dest) {
+
+    $.get('resource.php?action=service&host='+ host, function(data) {
+        $.each(data, function(index, val) {
+            if(typeof(val) === 'string') {
+                val = String(val);
+                val = val.split(',');
+            }
+            nval = '';
+            $.each(val, function(idata, ival) {
+                if(typeof(ival) === 'object') {
+                    $.each(ival, function(sidx, sval) {
+                        nval += '<li><a href="'+ sval +'">'+ sval +'</span></li>\n';
+                    });
+                } else {
+                    nval += '<li><a href="'+ ival +'">'+ ival +'</span></li>\n';
+                }
+            }); 
+        });
+        dest.html(nval);
+
+        dest.find('a').click(function(){
+            file    = $(this).val(); 
+            service = $(this).attr('href');
+            $.ajax({
+                url: 'resource.php?action=items&host='+ host +'&service='+ service,
+                dataType: 'json',
+                success: function(data) {
+                    select = '<div class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active" style="height: 40px;"><h1 style="margin: 5px;">'+ host +'</h1></div>';
+                    select +='<div class="ui-widget ui-state-default ui-corner-top outter">';
+                    select += '<strong>Grafico: </strong><select id="service">';
+                    $.each(data.items, function(idx, item) {
+                        if(typeof(idx) === 'string') {
+                            select += '<option value="'+ idx +',';
+                            $.each(item, function(key, val) {
+                                select += key +',';
+                            });
+                            select += '">'+ idx +'</option>';
+                        } else {
+                            $.each(item, function(key, val) {
+                                select += '<option value="'+ val +'">'+ key +'</option>'
+                            });
+                        }
+                    });
+                    select += ' </select><br/><br/>';
+                    select += ' <div id="graph_interval">';
+                    select += '  <ul>';
+                    select += '   <li><a href="#1hour">Hora</a></li>';
+                    select += '   <li><a href="#1day">Dia</a></li>';
+                    select += '   <li><a href="#1week">Semana</a></li>';
+                    select += '   <li><a href="#1month">Mês</a></li>';
+                    select += '   <li><a href="#1year">Ano</a></li>';
+                    select += '  </ul>';
+                    select += '  <div id="1hour"><iframe class="placeholder"></iframe>hourly graph for service</div>';
+                    select += '  <div id="1day"><iframe class="placeholder"></iframe>daily graph for service</div>';
+                    select += '  <div id="1week"><iframe class="placeholder"></iframe>weekly graph for service</div>';
+                    select += '  <div id="1month"><iframe class="placeholder"></iframe>monthly graph for service</div>';
+                    select += '  <div id="1year"><iframe class="placeholder"></iframe>yearly graph for service</div>';
+                    select += ' </div>';
+                    select += '</div>';
+                    $('#graph').html(select);
+                    $('#graph_interval').tabs();
+                    $('#graph_interval ul li a').click(function() {
+                        attr = $(this).attr('href');
+                        renderGraph(host, service, $('#service').val(), attr.replace('#', ''));
+                    });
+
+                    $('#service').change(function() {
+                        attr = $('#graph_interval ul li.ui-tabs-selected a').attr('href');
+                        renderGraph(host, service, $(this).val(), attr.replace('#', ''));
+                    });
+                    $('#service').change();
+                }
+            });
+            return false;
+        });
+    }, 'json');
+ }
+
+ function getServiceItems(host, ival, callback) {
+    $.ajax({
+        url: 'resource.php?action=items&host='+ host +'&service='+ ival,
+        dataType: 'json',
+        success: function(data) {
+            if(typeof callback === 'function')
+                callback.apply(this, [data]);
+        }
+    });
+ }
+
+ function renderGraph(host, service, file, interval) {
+     $('#'+ interval +' iframe').attr('src','resource.php?action=graph&host='+ host +'&service='+ service +'&item='+ file +'&interval='+ interval);
+    /* $.ajax({
+        url: 'resource.php?action=graph&host='+ host +'&service='+ service +'&item='+ file +'&interval='+ interval,
+        success: function(data) {
+            $('#'+ interval).html(data);
+        }
+    });   */
+ }
+
+ </script>
+
+</html>
