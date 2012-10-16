@@ -5,6 +5,10 @@ if(!isset($_REQUEST['action']) or strlen($_REQUEST['action']) == 0) {
     die('404');
 }
 
+if(!file_exists('config.php')) {
+    die('missing config.php');
+}
+
 $action = $_REQUEST['action'];
 
 require_once('functions.php');
@@ -35,8 +39,9 @@ switch($action) {
         $service    = $_REQUEST['service'];
         $item       = $_REQUEST['item'];
         $interval   = $_REQUEST['interval'];
-    
-        $graph      = $collectd->graph($host, $service, $item);
+        $count      = $_REQUEST['count'];
+
+        $graph      = $collectd->graph($host, $service, $item, $count);
         $graph->render($interval, 'area');
     break;
 

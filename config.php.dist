@@ -1,0 +1,46 @@
+<?php
+
+$config['collectd_rrd_path'] = '/var/lib/collectd/rrd';
+
+/**
+ * Groups configuration
+ *
+ **/
+$config['groups'] = array(
+    'Link' => array(
+        array('name' => 'Link 1Gbit', 'value' => 'Link_1Gbps_Level3'),
+        array('name' => 'Link 100Mbit', 'value' => 'Link_bkp_100Mbps_Level3')
+    ),
+    'DataBase' => array(
+	array( 'name'  => 'db01', 'value' => 'db01'),
+	array( 'name'  => 'db02', 'value' => 'db02'),
+	array( 'name'  => 'db03', 'value' => 'db03'),
+	array( 'name'  => 'db04', 'value' => 'db04'),
+	array( 'name'  => 'db06', 'value' => 'db06'),
+    ),
+    'Virtual' => array(
+	array( 'name'  => 'dftvm01', 'value' => 'dftvm01'),
+	array( 'name'  => 'dftvm02', 'value' => 'dftvm02'),
+	array( 'name'  => 'dftvm03', 'value' => 'dftvm03'),
+	array( 'name'  => 'dftvm04', 'value' => 'dftvm04'),
+	array( 'name'  => 'dftvm05', 'value' => 'dftvm05'),
+	array( 'name'  => 'dftvm06', 'value' => 'dftvm06'),
+	array( 'name'  => 'dftvm07', 'value' => 'dftvm07'),
+	array( 'name'  => 'dftvm08', 'value' => 'dftvm08'),
+	array( 'name'  => 'dftvm09', 'value' => 'dftvm09'),
+	array( 'name'  => 'dftvm10', 'value' => 'dftvm10'),
+	array( 'name'  => 'dftvm11', 'value' => 'dftvm11'),
+	array( 'name'  => 'dftvm12', 'value' => 'dftvm12'),
+    ),
+    'WebFarm' => array(
+	array( 'name'  => 'web01', 'value' => 'web01'),
+	array( 'name'  => 'web02', 'value' => 'web02'),
+	array( 'name'  => 'web03', 'value' => 'web03'),
+	array( 'name'  => 'web04', 'value' => 'web04'),
+	array( 'name'  => 'web05', 'value' => 'web05'),
+	array( 'name'  => 'web06', 'value' => 'web06'),
+     ),
+     'Windows' => array (
+	array( 'name'  => 'sap01', 'value' => 'sap01'),
+     ),
+);

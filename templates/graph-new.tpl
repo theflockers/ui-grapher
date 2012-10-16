@@ -6,8 +6,8 @@
 </head>
 
 <body style="padding: 0px;">
-  <div id="linechart" style="width: 850px; height: 280px;"></div>
+  <div id="graph" style="width: 850px; height: 280px;"></div>
   <script type="text/javascript">
-    <?php echo $linechart->renderChart();?>
+    <?php echo $graph->renderChart();?>
   </script>
 </body>

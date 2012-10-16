@@ -70,6 +70,7 @@
 
             $('#hosts').accordion({
                 autoHeight: false,
+                collapsible: true,
                 /*change: function(event, ui) {
                     name = ui.newHeader.children('a').attr('name');
                     id   = ui.newContent;
@@ -108,14 +109,20 @@
                 url: 'resource.php?action=items&host='+ host +'&service='+ service,
                 dataType: 'json',
                 success: function(data) {
+                    count = 0;
                     select = '<div class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active" style="height: 40px;"><h1 style="margin: 5px;">'+ host +'</h1></div>';
                     select +='<div class="ui-widget ui-state-default ui-corner-top outter">';
                     select += '<strong>Grafico: </strong><select id="service">';
                     $.each(data.items, function(idx, item) {
-                        if(typeof(idx) === 'string') {
+                        //if(typeof(idx) === 'string' and !idx.match(/\d/))) {
+                        if(!idx.match(/\d/) && idx != 'count') {
                             select += '<option value="'+ idx +',';
                             $.each(item, function(key, val) {
-                                select += key +',';
+                                if(key == 'count')
+                                    count = val;
+                                else 
+                                    select += key +',';
+
                             });
                             select += '">'+ idx +'</option>';
                         } else {
@@ -144,12 +151,12 @@
                     $('#graph_interval').tabs();
                     $('#graph_interval ul li a').click(function() {
                         attr = $(this).attr('href');
-                        renderGraph(host, service, $('#service').val(), attr.replace('#', ''));
+                        renderGraph(host, service, $('#service').val(), attr.replace('#', ''), count);
                     });
 
                     $('#service').change(function() {
                         attr = $('#graph_interval ul li.ui-tabs-selected a').attr('href');
-                        renderGraph(host, service, $(this).val(), attr.replace('#', ''));
+                        renderGraph(host, service, $(this).val(), attr.replace('#', ''), count);
                     });
                     $('#service').change();
                 }
@@ -170,8 +177,8 @@
     });
  }
 
- function renderGraph(host, service, file, interval) {
-     $('#'+ interval +' iframe').attr('src','resource.php?action=graph&host='+ host +'&service='+ service +'&item='+ file +'&interval='+ interval);
+ function renderGraph(host, service, file, interval, count) {
+     $('#'+ interval +' iframe').attr('src','resource.php?action=graph&host='+ host +'&service='+ service +'&item='+ file +'&interval='+ interval +'&count='+ count);
     /* $.ajax({
         url: 'resource.php?action=graph&host='+ host +'&service='+ service +'&item='+ file +'&interval='+ interval,
         success: function(data) {
